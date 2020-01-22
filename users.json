@@ -1,0 +1,36 @@
+{
+    "users": [
+        {
+            "user": "admin",
+            "password": "secret"
+        },
+        {
+            "user": "yass",
+            "password": "portorico"
+        },
+        {
+            "user": "aita",
+            "password": "diop"
+        },
+        {
+            "user": "adja",
+            "password": "pass"
+        },
+        {
+            "user": "khady",
+            "password": "rambo"
+        },
+        {
+            "user": "mami",
+            "password": "tr"
+        },
+        {
+            "user": "fama",
+            "password": "ndoye"
+        },
+        {
+            "user": "peter",
+            "password": "faye"
+        }       
+    ]
+}

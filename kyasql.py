@@ -1,6 +1,87 @@
 import os.path 
-import simplejson
-#le LDD
+import json as simplejson
+import shutil
+#Vérification syntaxe des requêtes
+def verification(requete):
+	maRequete = requete.split(" ")
+	global check
+	if len(maRequete)>=3:
+		if maRequete[0]!="create" and maRequete[0]!="alter" and maRequete[0]!="adduser" and maRequete[0]!="use" and maRequete[0]!="select" and maRequete[0]!="insert" and maRequete[0]!="update" and maRequete[0]!="show" and maRequete[0]!="describe" and maRequete[0]!="delete":
+			print("Cette commande n'est pas reconnue par notre système")
+			check=False
+		elif maRequete[0] == "create" or maRequete[0]=="alter":
+			if maRequete[1]!="table" and maRequete[1] != "user" and maRequete[1] != "database" :
+				print("Veuillez revoir le deuxieme mot saisi : la syntaxe est incorrecte")
+				check=False
+		elif maRequete[0]=="update":
+			if len(maRequete)<6:
+				print("La commande UPDATE est incomplète ou invalide")
+				check=False
+			elif maRequete[2]!="set" or maRequete[4]!= "=": 
+				print("La syntaxe de la commande UPDATE n'est pas respectée")
+				check=False
+		elif maRequete[0]=="delete":
+			if len(maRequete)!=3 and len(maRequete)!=5:
+				print("La commande DELETE est incomplète ou invalide")
+				check=False
+			if len(maRequete)==3:
+				if maRequete[1]!="from":
+					print("La syntaxe de la commande DELETE n'est pas respectée")
+					check=False
+			if len(maRequete)==5:
+				if maRequete[1]!="from" or maRequete[3]!="where":
+					print("La syntaxe de la commande DELETE n'est pas respectée")
+					check=False
+		elif maRequete[0]=="insert":
+			if len(maRequete)!=3:
+				print("La commande INSERT est incomplète ou invalide")
+				check=False
+			elif maRequete[1]!="into": 
+					print("La syntaxe de la commande INSERT n'est pas respectée")
+					check=False
+		elif maRequete[0]=="select":
+			if len(maRequete)!=4:
+				print("La commande SELECT est incomplète ou invalide")
+				check=False
+			elif maRequete[2]!= "from":
+				print("La syntaxe de la commande SELECT n'est pas respectée")
+				check=False
+		elif maRequete[0]=="adduser":
+			if len(maRequete)!=3:
+				rint("La syntaxe de la commande adduser n'est pas respectée")
+				check=False
+
+	elif maRequete[0]!="show" and maRequete[0]!="describe" and maRequete[0]!="select" and maRequete[0]!="use" and maRequete[0]!="drop":
+		print("Requête invalide ou incomplète")
+		check=False
+
+#Vérification identifiants authentification
+def auth(user,password):
+	dic=dict()
+	dico=dict()
+	dico["user"] = user
+	dico["password"] = password
+	
+	with open("users.json",'r') as f :
+		dic=simplejson.load(f)
+	tab =[]
+	tab = dic["users"]
+	for i in range (len(tab)):
+		if tab[i] == dico :
+			return "1"
+	return "0"
+
+#Verification Syntaxe Authentification
+def veriSynAuth(chaine):
+	if len(chaine) !=5:
+		return "0"
+	elif chaine[0]!="kyasql":
+		return "0"
+	elif chaine[1]!="-u" or chaine[3]!="-p":
+		return "0"
+	return "1"
+
+#Commande create
 def create(name,type,base):
 	if type.upper() == "DATABASE" :
 		path = name
@@ -21,17 +102,17 @@ def create(name,type,base):
 			f.write("")
 			f.close()
 			return "Table created successfully"
+
+#Commande drop
 def drop(chaine):
 	path = chaine
 	if os.path.exists(path):
-		os.remove(chaine)
+		shutil.rmtree(chaine)
 		return "database droped successfully"
 	else:
 		return "database not droped"
-def alter(chain):
-	pass
 
-#le LMD et le LED
+#Commande insert
 def insert(base,o,bd):
 	attr=[]
 	donnee=[]
@@ -53,10 +134,8 @@ def insert(base,o,bd):
 		return "insertion successfull"
 	else:
 		return "insertion not succesfull"
-def update(chaine):
-	pass
-def delete(chaine):
-	pass
+
+#Commande select
 def select(element,base,bd):
 	path = base+".json"
 	print("element: "+element)
@@ -101,39 +180,8 @@ def select(element,base,bd):
 		return ch
 	else:
 		return "table not exist"
-#transaction
-def start():
-	pass
-def commit():
-	pass
-def rollback():
-	pass
 
-#authentification
-def auth(user,password):
-	return "1"
-def adduser(user,password):
-	pass
-def deluser(user,password):
-	pass
-
-#fonctions auxiliaires
-def quit():
-	pass
-def cut(chaine,key):
-	return chaine.split(key)
-def writejson(chaine,base,table):
-	pass
-def readjson():
-	pass
-def addtable(table,base):
-	pass
-def addEntre():
-	pass
-def success():
-	pass
-def abort():
-	pass
+#Commande space
 def space(chaine):
 	chaine1=""
 	j=0
@@ -149,6 +197,8 @@ def space(chaine):
 		if chaine[i] == "(":
 				chaine1 += "#("	
 	return chaine1
+
+#Commande getData
 def getData(chaine):
 	donnee = chaine.split("(")
 	#print(donnee)
@@ -164,6 +214,8 @@ def getData(chaine):
 		tab_attr.append(c[0])
 		tab_donnee.append(c[1])
 	return tab_attr,tab_donnee
+
+#Commande getjsondata
 def getjsondata(tab):
 	attr = []
 	donnee = []
@@ -178,6 +230,8 @@ def getjsondata(tab):
 	print(attr)
 	print(donnee)
 	return attr,donnee
+
+#Commande describe
 def describe(table,bd):
 	path = table+".json"
 	
@@ -192,12 +246,16 @@ def describe(table,bd):
 		for chaine in attr:
 			ch+="#"+chaine
 		return ch
+
+#Commande showtable
 def showtable(base):
 	dossier = os.listdir(base)
 	ch = ""
 	for chaine in dossier:
 		ch+="#"+chaine
 	return ch	 
+
+#Commandes auxiliaires
 def TriNumber(number):
     return number.sort()
 def TriNumberinverse():
@@ -209,4 +267,18 @@ def ChaineOrdreCroissante (chaine):
 def ChaineOrdreDecroissant(chaine):
 	ch = sorted (chaine,reverse=True)
 	return ch
-	
+def cut(chaine,key):
+	return chaine.split(key)
+
+def adduser(user,password):
+	dico=dict()
+	dic=dict()
+	with open("users.json",'r') as f :
+		dico=simplejson.load(f)
+	dic["user"] = user
+	dic["password"] = password
+	dico["users"].append(dic)
+	with open("users.json",'w') as g :	
+		simplejson.dump(dico,g,indent=4)
+	f.close()
+

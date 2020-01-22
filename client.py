@@ -1,81 +1,23 @@
 # coding: utf-8
 import socket
 import kyasql
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.connect(("", 8888))
+import json
 check=True
-authentifier = True
-def verification(requete):
-	maRequete = requete.split(" ")
-	global check
-	if len(maRequete)>=3:
-		if maRequete[0]!="create" and maRequete[0]!="alter" and maRequete[0]!="use" and maRequete[0]!="drop" and maRequete[0]!="select" and maRequete[0]!="insert" and maRequete[0]!="update" and maRequete[0]!="show" and maRequete[0]!="describe" and maRequete[0]!="delete":
-			print("Cette commande n'est pas reconnue par notre système")
-			check=False
-		elif maRequete[0] == "create" or maRequete[0]=="drop" or maRequete[0]=="alter":
-			if maRequete[1]!="table" and maRequete[1] != "user" and maRequete[1] != "database" :
-				print("Veuillez revoir le deuxieme mot saisi : la syntaxe est incorrecte")
-				check=False
-		elif maRequete[0]=="update":
-			if len(maRequete)<6:
-				print("La commande UPDATE est incomplète ou invalide")
-				check=False
-			elif maRequete[2]!="set" or maRequete[4]!= "=": 
-				print("La syntaxe de la commande UPDATE n'est pas respectée")
-				check=False
-		elif maRequete[0]=="delete":
-			if len(maRequete)!=3 and len(maRequete)!=5:
-				print("La commande DELETE est incomplète ou invalide")
-				check=False
-			if len(maRequete)==3:
-				if maRequete[1]!="from":
-					print("La syntaxe de la commande DELETE n'est pas respectée")
-					check=False
-			if len(maRequete)==5:
-				if maRequete[1]!="from" or maRequete[3]!="where":
-					print("La syntaxe de la commande DELETE n'est pas respectée")
-					check=False
-		elif maRequete[0]=="insert":
-			if len(maRequete)!=3:
-				print("La commande INSERT est incomplète ou invalide")
-				check=False
-			elif maRequete[1]!="into": 
-					print("La syntaxe de la commande INSERT n'est pas respectée")
-					check=False
-		elif maRequete[0]=="select":
-			if len(maRequete)!=4:
-				print("La commande SELECT est incomplète ou invalide")
-				check=False
-			elif maRequete[2]!= "from":
-				print("La syntaxe de la commande SELECT n'est pas respectée")
-				check=False
 
-	elif maRequete[0]!="show" and maRequete[0]!="describe" and maRequete[0]!="select" and maRequete[0]!="use":
-		print("Requête invalide ou incomplète")
-		check=False
-chaine = input(">>") # utilisez raw_input() pour les anciennes versions python
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.connect(("127.0.0.1", 8888))
+chaine = input(">>") 
 maChaine = chaine.split(" ")
-
-if len(maChaine) !=5:
-	print("Requête d'authentification invalide ou incomplete")
-	authentifier=False
-elif maChaine[0]!="kyasql":
-	print("Requête d'authentification invalide")
-	authentifier=False
-elif maChaine[1]!="-u" or maChaine[3]!="-p":
-	print("La commande d'authentification ne respecte pas la syntaxe")
-	authentifier=False
-
-if authentifier==True:
-	s.send(chaine.encode())
-	auth = s.recv(100000)
+if kyasql.veriSynAuth(maChaine) == "0":
+	print("La syntaxe de la requete d'authentification est invalide ou incomplete")
+elif kyasql.auth(maChaine[2], maChaine[4])!="1":
+	print("Identifiants incorrects")
 else:
-	auth.decode()=="0"
-
-if auth.decode() == "1":
+	ch="1"
+	s.send(ch.encode())
 	while True:
 		requete = input("kyasql>>")
-		verification(requete)
+		kyasql.verification(requete)
 		if check==True:
 			s.send(requete.encode())
 			ch = s.recv(100000)
@@ -153,5 +95,7 @@ if auth.decode() == "1":
 					print('')
 					for x in range(1,len(dossier)):
 						print("{:^15s}|".format(dossier[x]))	
+			if r[0].upper() == "EXIT":
+				sys.exit()
 			else:
 				print(ch.decode())
